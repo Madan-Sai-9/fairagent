@@ -1,0 +1,33 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Model weights / large binaries (these live in Kaggle Datasets, not GitHub)
+*.gguf
+*.bin
+*.safetensors
+ollama_models/
+
+# Results (canonical copy lives in the Kaggle results/ Dataset, not GitHub)
+*.csv
+!results/README.md
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Kaggle/Colab local state
+.kaggle/
