@@ -37,14 +37,16 @@ Fully online: GitHub (code) + Kaggle Notebooks (compute) + Kaggle Datasets (mode
 
 ## Status
 
-**Phase 1 — Core FL Harness: complete.** Small CNN trained via FedAvg on Dirichlet-partitioned (α=0.5) CIFAR-10, 20 simulated clients, pluggable selector interface, three numeric baselines implemented and sanity-checked over 30 rounds:
+**Phase 1 — Core FL Harness: complete (corrected).** Small CNN trained via FedAvg on Dirichlet-partitioned (α=0.5) CIFAR-10, 20 simulated clients, pluggable selector interface, three numeric baselines implemented and sanity-checked over 30 rounds:
 
 | Selector | Final test accuracy |
 |---|---|
-| Random | 61.67% |
-| Power-of-Choice | 62.02% |
-| Oort | 57.41% |
+| Random | 62.05% |
+| Power-of-Choice | 63.38% |
+| Oort | 59.27% |
 
-Harness converges sanely (Gate Check #1 passed). Note: Oort underperformed Random in this single-seed run — flagged honestly rather than hidden; see `analysis/phase1_notes.md` for the full discussion and why this doesn't block Phase 1, pending resolution in Phase 5's multi-seed trial matrix.
+Harness converges sanely (Gate Check #1 passed). **Correction note:** an earlier bug (`update_stats()` never wired into the training loop, so PoC/Oort never received real per-round loss feedback) was found during Phase 2 integration testing and fixed; these numbers supersede all previously documented Phase 1 results. PoC now clearly beats Random as expected. Oort still underperforms Random — a real, documented characteristic of the simplified exploration formula, not a bug; see `analysis/phase1_notes.md` for full discussion.
+
+**Phase 2 — Orchestrator Integration (in progress).** LLM-based selector (Llama-3.2-3B-Instruct, Description-Only prompting) implemented and passing both an isolated smoke test and full harness integration.
 
 **Next:** Phase 2 — Orchestrator integration (Llama-3.2-3B-Instruct as a fourth, LLM-based selector) and replication checkpoint against AiFed's reported results.
