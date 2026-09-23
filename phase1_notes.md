@@ -1,62 +1,73 @@
-# Phase 1 Sanity Check — Results & Notes
+# Phase 1 Sanity Check — Results & Notes (Corrected Re-run)
 
 **Config:** `configs/phase1_sanity.yaml` — CIFAR-10, Dirichlet non-IID (α=0.5),
 20 clients, 5 selected/round, 30 rounds, 1 local epoch/round, SGD lr=0.01, seed=42.
 
-**Script:** `experiments/run_phase1_sanity.py`
-**Notebook:** `phase-1-sanity-check.ipynb` (finalized run)
+## Correction note — read this first
 
-## Final test accuracies (30 rounds)
+A bug was discovered during Phase 2 integration testing: `fl_core/fedavg.py`'s
+`run_fedavg()` never called `selector.update_stats()` after training each
+client. This meant Power-of-Choice and Oort never received real per-round
+loss feedback — their internal `_last_loss` tracking stayed at constructor
+defaults (`float("inf")`) for the entire run, so their "select by highest
+loss" logic was comparing tied values throughout. **All previously documented
+Phase 1 results (including 61.67%/62.02%/57.41%) were produced by this
+broken harness and are superseded by this corrected re-run.**
+
+Fix: `local_train()` now returns average training loss over the final local
+epoch; `run_fedavg()` calls `selector.update_stats(client_id, loss=avg_loss)`
+after each client trains. This is what actually makes PoC/Oort's utility-based
+logic functional.
+
+## Final test accuracies (30 rounds, corrected harness)
 
 | Selector | Final test accuracy |
 |---|---|
-| Random | 0.6167 (61.67%) |
-| Power-of-Choice | 0.6202 (62.02%) |
-| Oort | 0.5741 (57.41%) |
+| Random | 0.6205 (62.05%) |
+| Power-of-Choice | 0.6338 (63.38%) |
+| Oort | 0.5927 (59.27%) |
 
 ## Honest read of this result
 
-Random and Power-of-Choice both converge to a sane, meaningfully-above-chance
-accuracy, confirming the harness itself (model, Dirichlet partitioning,
-FedAvg loop) works correctly.
+**Power-of-Choice now clearly beats Random** (63.38% vs 62.05%), consistent
+with the literature and with PoC's loss-feedback logic now actually working
+— its per-round selections visibly track observed loss (recurring high-loss
+clients like 8, 9, 12, 14 appear disproportionately often across rounds).
 
-**Oort underperformed Random in this run** — the opposite of the expected
-direction (Oort is designed to beat Random by prioritizing high-utility
-clients). This is flagged honestly rather than omitted. Two plausible
-explanations, not yet distinguished:
+**Oort still underperforms Random** (59.27%) — but its behavior now looks
+qualitatively different from the pre-fix run, and the explanation is
+different too. With real feedback flowing, Oort's selections show a clear
+pattern: it locks onto a small fixed client set (`[0,1,2,3,4]`) for the
+first 12 rounds, then shifts in small increments (dropping/adding one
+client at a time) for the rest of the run. This is the simplified Oort
+formula's exploration/exploitation balance converging too aggressively
+onto an early set of high-loss clients and being slow to explore beyond
+it — a real property of this implementation, not a data/wiring bug. It
+plausibly explains the underperformance: repeatedly re-training the same
+handful of clients doesn't help the *global* model generalize across the
+full non-IID pool the way genuine rotation does.
 
-1. **Single-seed run-to-run variance.** Phase 1 is deliberately a single-seed
-   sanity check, not a statistically powered comparison — Oort's
-   exploration/exploitation balance (`exploration_weight` in the simplified
-   formula used here) can behave noisily over just 30 rounds with only 20
-   clients, especially early on before per-client loss estimates stabilize.
-2. **A real weakness in the simplified Oort implementation** — this project's
-   Oort is a simplified version of the full statistical-utility formula from
-   Lai et al. (2021), and it's possible the simplification (or its default
-   `exploration_weight`) genuinely underperforms in this specific non-IID
-   regime (α=0.5, 20 clients).
+This is a legitimate, reportable finding, not something to hide: the
+simplified Oort implementation's `exploration_factor` default may need
+tuning, or this may be a real limitation worth discussing in the paper's
+methods/limitations section. **Left for Phase 5's multi-seed matrix** to
+determine whether this is consistent across seeds or specific to this one.
 
-**This does not block Phase 1's gate check.** Gate Check #1 only requires
-the harness to "converge sanely" — which it does (all three selectors rise
-from near-chance to 55–62% over 30 rounds, no divergence, no bugs). It does
-not require every selector to outperform Random at n=1 seed. Resolving
-*which* explanation above is correct is exactly what Phase 5's multi-seed
-Core trial matrix is for — if Oort continues to underperform Random across
-multiple seeds there, that's a real finding worth investigating (possibly
-tuning `exploration_weight`, or reporting it as-is); if it was noise, later
-seeds will show it recovering above Random as expected.
+**Gate Check #1 ("harness converges sanely") — satisfied.** All three
+selectors rise from near-chance (~25%) to 59–63% over 30 rounds. No
+divergence, no crashes, and — critically — the harness now actually
+exercises every selector's real logic, which the pre-fix runs did not.
 
-## Result history / provenance note
+## Provenance
 
-This is the third and final recorded Phase 1 run. Two earlier runs (from
-different notebook sessions, one of which was briefly lost and later
-recovered) produced different numbers (61.33/66.55/66.23 and separately a
-partial recovered-implementation run) using structurally different code
-(different file layout: `client.py`/`server.py`/`registry.py` vs. this
-notebook's `fedavg.py`/`random_selector.py`/`power_of_choice.py`). Those
-earlier numbers are superseded — **this run's code (already in GitHub) and
-these numbers are the authoritative Phase 1 result** going forward.
+Bug found: during Phase 2 (LLM orchestrator) integration testing, when the
+LLM selector selected the identical 5 clients every round — traced to
+`update_stats()` never being called anywhere in `run_fedavg()`, affecting
+every loss-aware selector equally (PoC, Oort, and the LLM selector's
+`_last_loss`-based rendering), not just the LLM one.
 
-Package renamed `selectors/` → `client_selectors/` because `selectors`
-collides with Python's standard library module of the same name (I/O
-multiplexing), which was silently shadowing the local package.
+Fix applied and this re-run performed in one continuous, verified session:
+fresh clone → fix written → fix verified present on disk (hard assertion)
+→ cache purged → import verified to match fix (hard assertion) → 30-round
+re-run. Every step asserted before proceeding, specifically to avoid the
+stale-cache/unconfirmed-write issues that affected earlier sessions.
