@@ -1,7 +1,7 @@
 """
 client_selectors/registry.py
 Name -> constructor registry, so configs/trial runners can reference a
-selector by string name. Added in Phase 2 alongside the LLM selectors.
+selector by string name.
 """
 
 from __future__ import annotations
@@ -35,9 +35,32 @@ def available_selectors():
     return sorted(_REGISTRY.keys())
 
 
+def register_llm_selectors(tokenizer, model, device):
+    from client_selectors.llm_description_only import LLMDescriptionOnlySelector
+    from client_selectors.llm_few_shot import LLMFewShotSelector
+    from client_selectors.llm_cot import LLMCoTSelector
+
+    register_selector(
+        "llm_description_only",
+        lambda client_profiles, **kw: LLMDescriptionOnlySelector(
+            client_profiles=client_profiles, tokenizer=tokenizer, model=model, device=device, **kw
+        ),
+    )
+    register_selector(
+        "llm_few_shot",
+        lambda client_profiles, **kw: LLMFewShotSelector(
+            client_profiles=client_profiles, tokenizer=tokenizer, model=model, device=device, **kw
+        ),
+    )
+    register_selector(
+        "llm_cot",
+        lambda client_profiles, **kw: LLMCoTSelector(
+            client_profiles=client_profiles, tokenizer=tokenizer, model=model, device=device, **kw
+        ),
+    )
+
+
 def register_llm_description_only(tokenizer, model, device):
-    """Needs a loaded model injected, so can't be built from name+kwargs
-    alone like the numeric selectors. Call once after the model loads."""
     from client_selectors.llm_description_only import LLMDescriptionOnlySelector
     register_selector(
         "llm_description_only",
