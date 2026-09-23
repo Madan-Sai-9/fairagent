@@ -1,0 +1,11 @@
+# Phase 1 sanity-check config — confirms the harness converges sanely
+# before any orchestrator/selector work builds on top of it.
+
+num_clients: 20
+dirichlet_alpha: 0.5
+num_rounds: 30
+clients_per_round: 5
+local_epochs: 1
+learning_rate: 0.01
+batch_size: 32
+seed: 42
