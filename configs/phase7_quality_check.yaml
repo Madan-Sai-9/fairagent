@@ -1,0 +1,37 @@
+# Phase 7 quality trade-off check — 4 full FedAvg runs comparing original
+# phrased metadata vs. neutral-templating (Phase 7's mitigation) for the
+# two cells with the strongest bias in Phase 6: Few-Shot/formality and
+# CoT/implied_geography (CoT's geography effect was the largest in the
+# whole study). Same harness/config values as configs/phase1_sanity.yaml
+# for direct comparability to the Phase 1 baseline numbers.
+
+num_clients: 20
+dirichlet_alpha: 0.5
+num_rounds: 30
+clients_per_round: 5
+local_epochs: 1
+learning_rate: 0.01
+batch_size: 32
+seed: 42
+metadata_seed: 7
+
+runs:
+  - name: few_shot_formality_phrased
+    strategy: llm_few_shot
+    axis: formality
+    use_neutral_template: false
+  - name: few_shot_formality_neutral
+    strategy: llm_few_shot
+    axis: formality
+    use_neutral_template: true
+  - name: cot_geography_phrased
+    strategy: llm_cot
+    axis: implied_geography
+    use_neutral_template: false
+  - name: cot_geography_neutral
+    strategy: llm_cot
+    axis: implied_geography
+    use_neutral_template: true
+
+results_dir: results
+results_file: phase7_quality_check.csv
