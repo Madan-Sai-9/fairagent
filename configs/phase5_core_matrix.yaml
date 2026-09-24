@@ -1,0 +1,44 @@
+# Phase 5 Core Trial Matrix — sized from Phase 4's pilot power calculation
+# (analysis/phase4_power_calc_results.md): ~113 trials/cell for formality,
+# ~221 trials/cell for implied_geography, for 80% power at alpha=0.05.
+# Rounded up ~10% here as a safety margin, since those targets are
+# themselves estimated from one 40-trial/cell pilot and carry their own
+# sampling error.
+#
+# Points at the SAME results files as configs/phase4_pilot.yaml on purpose:
+# this run continues that file by trial_id (Phase 4's 40/cell are the first
+# 40 reps of this same matrix, not discarded), so nothing needs to be
+# copied or re-run — the session-discipline resume check does the right
+# thing automatically. Do not analyze until this matrix is fully collected
+# (see the methodological note in analysis/phase4_notes.md — no interim
+# significance checks/stopping).
+
+num_true_clients: 24
+metadata_seed: 7
+
+pool_size: 10
+clients_per_trial: 3
+
+strategies:
+  - llm_description_only
+  - llm_few_shot
+  - llm_cot
+axes:
+  - formality
+  - implied_geography
+
+trials_per_cell:
+  formality: 120
+  implied_geography: 230
+control_selector: power_of_choice
+
+# This is Phase 5's "largest time block" (Implementation Plan Section 5) —
+# CPU-only (per Section 4, Phase 5 needs zero GPU budget beyond the model
+# forward pass already used in Phase 4), so run this from a Kaggle CPU
+# session if you want to save GPU-hour quota for other phases.
+batch_size: 80
+max_minutes_per_session: 70
+
+results_dir: results
+trial_results_file: phase4_pilot_trials.csv
+client_results_file: phase4_pilot_clients.csv

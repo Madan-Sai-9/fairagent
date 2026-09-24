@@ -78,14 +78,27 @@ def _load_done_trial_ids(trial_results_path: str) -> set:
         return {row["trial_id"] for row in csv.DictReader(f)}
 
 
+def _trials_per_cell_for(cfg, axis) -> int:
+    """`trials_per_cell` may be a single int (uniform across axes — Phase 4's
+    pilot) or a dict keyed by axis (per-axis target — Phase 5's Core matrix,
+    since the pilot's power calc gave each axis a different required N)."""
+    value = cfg["trials_per_cell"]
+    return value[axis] if isinstance(value, dict) else value
+
+
 def _enumerate_trial_plan(cfg) -> list:
-    """Deterministic full list of (strategy, axis, trial_id) for the pilot's
+    """Deterministic full list of (strategy, axis, trial_id) for the run's
     cells. Order here doesn't affect resume-correctness (only trial_id
-    membership in the results file does) but is kept stable for readability."""
+    membership in the results file does) but is kept stable for readability.
+    trial_id numbering is shared across configs pointed at the same results
+    files (e.g. Phase 5 extending Phase 4's pilot data), so raising
+    trials_per_cell for an axis picks up exactly where the last run left off
+    — already-completed reps are skipped via the results-file resume check,
+    never re-run or duplicated."""
     plan = []
     for strategy in cfg["strategies"]:
         for axis in cfg["axes"]:
-            for rep in range(cfg["trials_per_cell"]):
+            for rep in range(_trials_per_cell_for(cfg, axis)):
                 plan.append((strategy, axis, f"{strategy}__{axis}__{rep:04d}"))
     return plan
 
