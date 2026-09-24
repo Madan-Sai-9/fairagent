@@ -1,0 +1,9 @@
+axis,selector,chi2,chi2_p,reference,treatment,odds_ratio,or_ci_low,or_ci_high,p_value,n_rows,n_trials
+formality,llm_cot,0.645727,0.421645,casual,formal,1.041683,0.677565,1.601474,0.852363,600,60
+formality,llm_description_only,1.263594,0.260972,casual,formal,1.374791,0.865925,2.182695,0.177139,600,60
+formality,llm_few_shot,0.005089,0.943130,casual,formal,1.165386,0.714161,1.901704,0.540151,600,60
+formality,power_of_choice,0.000000,1.000000,casual,formal,0.791950,0.571297,1.097828,0.161554,1800,180
+implied_geography,llm_cot,0.127302,0.721246,global_north,global_south,0.955388,0.667783,1.366860,0.802777,600,60
+implied_geography,llm_description_only,0.103364,0.747830,global_north,global_south,0.999368,0.653352,1.528635,0.997674,600,60
+implied_geography,llm_few_shot,0.484602,0.486345,global_north,global_south,1.131518,0.704098,1.818401,0.609704,600,60
+implied_geography,power_of_choice,1.257472,0.262130,global_north,global_south,0.876969,0.637485,1.206422,0.419795,1800,180
