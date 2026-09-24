@@ -83,7 +83,11 @@ def fit_variant_effect(df):
     }
 
 
-def analyze(csv_path: str):
+def analyze(csv_path: str, output_prefix: str = "phase6"):
+    """`output_prefix` lets this same pipeline be reused for Phase 7's
+    mitigation re-run (e.g. output_prefix="phase7_mitigation") without
+    overwriting Phase 6's original results — same model, same reasoning,
+    different input CSV and output filenames."""
     df = pd.read_csv(csv_path)
     selectors = sorted(df["selector"].unique())
     axes = sorted(df["axis"].unique())
@@ -99,20 +103,22 @@ def analyze(csv_path: str):
             rows.append({"axis": axis, "selector": selector, "chi2": chi2, "chi2_p": chi_p, **reg})
 
     results = pd.DataFrame(rows)
-    results.to_csv("analysis/phase6_results.csv", index=False)
-    print("Written: analysis/phase6_results.csv")
+    results_path = f"analysis/{output_prefix}_results.csv"
+    results.to_csv(results_path, index=False)
+    print("Written:", results_path)
 
-    write_markdown_summary(results, csv_path)
+    write_markdown_summary(results, csv_path, output_prefix)
     for axis in axes:
-        plot_forest(results[results["axis"] == axis], axis)
+        plot_forest(results[results["axis"] == axis], axis, output_prefix)
     return results
 
 
-def write_markdown_summary(results, csv_path):
+def write_markdown_summary(results, csv_path, output_prefix: str = "phase6"):
     llm_selectors = [s for s in results["selector"].unique() if s.startswith("llm_")]
     control_selectors = [s for s in results["selector"].unique() if not s.startswith("llm_")]
 
-    lines = ["# Phase 6 — Statistical Analysis\n", f"\nSource: `{csv_path}`\n"]
+    title = "Phase 6 — Statistical Analysis" if output_prefix == "phase6" else f"{output_prefix} — Statistical Analysis"
+    lines = [f"# {title}\n", f"\nSource: `{csv_path}`\n"]
     for axis in sorted(results["axis"].unique()):
         sub = results[results["axis"] == axis]
         lines.append(f"\n## Axis: `{axis}`\n\n")
@@ -138,12 +144,13 @@ def write_markdown_summary(results, csv_path):
                 f"in the harness, not evidence against the LLM finding.\n"
             )
 
-    with open("analysis/phase6_results.md", "w") as f:
+    results_md_path = f"analysis/{output_prefix}_results.md"
+    with open(results_md_path, "w") as f:
         f.writelines(lines)
-    print("Written: analysis/phase6_results.md")
+    print("Written:", results_md_path)
 
 
-def plot_forest(sub, axis):
+def plot_forest(sub, axis, output_prefix: str = "phase6"):
     import matplotlib.pyplot as plt
 
     sub = sub.sort_values("selector")
@@ -160,7 +167,7 @@ def plot_forest(sub, axis):
     ax.set_xlabel("Odds ratio (treatment vs. reference), 95% CI")
     ax.set_title(f"Phrasing-variant effect on selection — axis: {axis}")
     fig.tight_layout()
-    out_path = f"analysis/phase6_forest_{axis}.png"
+    out_path = f"analysis/{output_prefix}_forest_{axis}.png"
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
     print("Written:", out_path)
@@ -168,5 +175,9 @@ def plot_forest(sub, axis):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        raise SystemExit("Usage: python analysis/phase6_analysis.py <path-to-phase4_pilot_clients.csv>")
-    analyze(sys.argv[1])
+        raise SystemExit(
+            "Usage: python analysis/phase6_analysis.py <path-to-clients.csv> [output_prefix]\n"
+            "  output_prefix defaults to 'phase6'; pass e.g. 'phase7_mitigation' for Phase 7's re-run."
+        )
+    prefix = sys.argv[2] if len(sys.argv) > 2 else "phase6"
+    analyze(sys.argv[1], output_prefix=prefix)

@@ -1,0 +1,45 @@
+# Phase 7 mitigation trials — re-runs the same trial design as
+# configs/phase5_core_matrix.yaml, but every client is rendered through
+# metadata/profiles.py's render_neutral() (one fixed template) instead of
+# its assigned phrasing variant. use_neutral_template is the only
+# functional difference from Phase 5's config.
+#
+# Trial-count target here is deliberately smaller than Phase 5's — this
+# is a confirmatory re-run checking whether known LARGE effects (OR=1.55,
+# OR=0.71, OR=0.40 — see analysis/phase6_notes.md) collapse toward the
+# control's null, not a fresh discovery run needing full power to detect
+# a small effect from scratch. 60 trials/cell is comfortably enough to
+# distinguish "collapsed near 1" from "still ~0.4-1.55," and keeps this a
+# single focused Kaggle session per the plan's Phase 7 note.
+#
+# Separate results files from Phase 4/5 — this is a structurally
+# different rendering condition, not a continuation of that trial series.
+# trial_id is a pure function of the string itself (strategy/axis/rep), so
+# rep 0000 here draws the IDENTICAL client pool, variant assignment, and
+# list order as rep 0000 in Phase 4/5 — a matched pool-for-pool comparison
+# against the original biased trials, not just a comparison in aggregate.
+
+num_true_clients: 24
+metadata_seed: 7
+
+pool_size: 10
+clients_per_trial: 3
+
+strategies:
+  - llm_description_only
+  - llm_few_shot
+  - llm_cot
+axes:
+  - formality
+  - implied_geography
+
+trials_per_cell: 60
+control_selector: power_of_choice
+use_neutral_template: true
+
+batch_size: 60
+max_minutes_per_session: 70
+
+results_dir: results
+trial_results_file: phase7_mitigation_trials.csv
+client_results_file: phase7_mitigation_clients.csv

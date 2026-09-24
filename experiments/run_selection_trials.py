@@ -48,7 +48,7 @@ import yaml
 
 from client_selectors.base import ClientProfile
 from client_selectors.registry import build_selector, register_llm_selectors
-from metadata.profiles import AXES, render
+from metadata.profiles import AXES, render, render_neutral
 from metadata.schema import generate_true_utilities
 
 TRIAL_FIELDS = [
@@ -116,11 +116,18 @@ def _build_pool(true_utilities, axis, pool_size, trial_id):
     return entries
 
 
-def _make_llm_profiles(entries, axis):
+def _make_llm_profiles(entries, axis, use_neutral_template=False):
+    """`use_neutral_template=True` is Phase 7's mitigation: every client is
+    rendered through the one fixed neutral template (metadata/profiles.py's
+    render_neutral) regardless of its assigned `variant`, instead of through
+    that variant's phrasing. `entries` still carries the original variant
+    assignment so the logged CLIENT_FIELDS row (and Phase 6's analysis
+    pipeline, unmodified) can check whether it still predicts selection once
+    the text shown no longer differs by variant."""
     return [
         ClientProfile(
             client_id=cid, num_samples=u.dataset_size, stats={},
-            metadata_text=render(axis, variant, cid, u),
+            metadata_text=render_neutral(cid, u) if use_neutral_template else render(axis, variant, cid, u),
         )
         for cid, u, variant in entries
     ]
@@ -199,7 +206,7 @@ def run_pilot(tokenizer, model, device, config_path: str = "configs/phase4_pilot
         entries = _build_pool(true_utilities, axis, cfg["pool_size"], trial_id)
         k = cfg["clients_per_trial"]
 
-        llm_profiles = _make_llm_profiles(entries, axis)
+        llm_profiles = _make_llm_profiles(entries, axis, use_neutral_template=cfg.get("use_neutral_template", False))
         llm_selector = build_selector(strategy, client_profiles=llm_profiles, seed=_trial_seed(trial_id))
         llm_selected = llm_selector.select(k)
 
