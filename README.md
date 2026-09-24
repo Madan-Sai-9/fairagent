@@ -34,6 +34,7 @@ Fully online: GitHub (code) + Kaggle Notebooks (compute) + Kaggle Datasets (mode
 | `experiments/` | Trial-runner scripts |
 | `analysis/` | Plots, statistical analysis notebooks, and result notes |
 | `results/` | Pointer to the canonical Kaggle results Dataset (raw trial data lives there, not in-repo) |
+| `paper/` | Manuscript draft (`manuscript.md`) — Phase 10 |
 
 ## Status
 
@@ -71,4 +72,6 @@ Harness converges sanely (Gate Check #1 passed). **Correction note:** an earlier
 
 **Phase 7 is now fully complete** — both the statistical mitigation (bias collapses to null) and the quality trade-off check (small, honestly-reported cost) are committed.
 
-**Next:** Phase 6/7's statistical hygiene pass (multiple-comparison correction across the 8 hypothesis tests run), the AiFed replication checkpoint (Phase 2's plan item, not yet done, and the paper's stated tie to its base paper), then manuscript writing (Phase 10).
+**Statistical hygiene: complete.** Multiple-comparison correction (Bonferroni + Benjamini-Hochberg) applied to Phase 6's 6 LLM-strategy hypothesis tests — all three headline findings survive both corrections; see `analysis/phase6_multiple_comparisons.md`. (Phase 2's AiFed replication checkpoint was descoped per program guidance — a base-paper citation and rationale is required, not an experimental replication; both are satisfied above and in `paper/manuscript.md`.) Phase 8/9 (Stretch: second/third orchestrator model, remaining variation axes, FEMNIST) intentionally out of scope for this submission, per the Implementation Plan's own Core-vs-Stretch framing.
+
+**Phase 10 — Manuscript: draft in progress.** `paper/manuscript.md` — full IMRaD draft (abstract, intro, related work, methods, results, mitigation, limitations, conclusion, references) built from the analysis notes above. Needs: deeper related-work literature review, journal-template formatting, and a final read-through before submission.
