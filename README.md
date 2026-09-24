@@ -55,6 +55,10 @@ Harness converges sanely (Gate Check #1 passed). **Correction note:** an earlier
 
 **Pilot result (see `analysis/phase4_notes.md`):** holding true utility and list position fixed, **Formality already shows a significant selection bias** — formal-register clients selected at 1.44x the odds of identical-utility casual-register clients (p=0.0098). **Implied Geography trends the same direction** (global-south framing selected less, OR=0.77) but isn't significant yet at the pilot's 40 trials/cell (p=0.060) — the pilot's own power calculation (`analysis/phase4_power_calc_results.md`) says this axis needs ~221 trials/cell, not 40.
 
-**Phase 5 — Core Trial Matrix (in progress).** `configs/phase5_core_matrix.yaml` extends the same results files to 120 trials/cell (formality) / 230 trials/cell (implied geography) — 1050 trials total, continuing Phase 4's 240 by `trial_id` rather than discarding them. Runs CPU-only per the plan.
+**Phase 5 — Core Trial Matrix: complete.** 1050 trials collected (120/cell formality, 230/cell implied geography, `configs/phase5_core_matrix.yaml`), continuing Phase 4's 240 trials by `trial_id`.
 
-**Next:** run the Phase 5 Core matrix batches to completion (`notebooks/phase4_pilot.ipynb`'s Phase 5 section), then Phase 6's full statistical analysis on the completed matrix.
+**Phase 6 — Statistical Analysis: complete.** `analysis/phase6_analysis.py`: chi-square + cluster-robust logistic regression per (axis, strategy/control) cell. Full results in `analysis/phase6_results.md` / `.csv`, forest plots in `analysis/phase6_forest_*.png`, interpretation in `analysis/phase6_notes.md`.
+
+**Headline finding:** the phrasing bias is real but strategy- and axis-specific, not uniform. On identical true-utility pools, the numeric control (Power-of-Choice) shows no phrasing effect on either axis (as it must — it never reads client metadata), while three of six LLM (strategy x axis) cells show a significant effect: **Few-Shot** is biased on *both* axes (formality OR=1.55, p=0.0029; geography OR=0.71, p=0.0019); **CoT** shows the single largest bias in the matrix on geography (OR=0.40, p=3.5e-13) but *no* formality bias (OR=1.09, p=0.56); **Description-Only** shows a geography trend (OR=0.82, p=0.071) that doesn't reach significance. Chain-of-Thought reasoning does not uniformly reduce phrasing sensitivity — it is the most biased strategy on one axis and the least on the other.
+
+**Next:** Phase 7 — Mitigation Design & Evaluation (metadata templating), evaluated per (strategy, axis) cell given the above, not pooled.

@@ -21,6 +21,10 @@ ollama_models/
 # Results (canonical copy lives in the Kaggle results/ Dataset, not GitHub)
 *.csv
 !results/README.md
+# ...except small aggregated analysis outputs (a handful of summary rows,
+# not raw trial data) — these belong in GitHub alongside the figures/notes
+# that cite them.
+!analysis/*.csv
 
 # Logs
 *.log
