@@ -1,0 +1,42 @@
+# Phase 4 pilot config — Selection-Trial Infrastructure + Pilot.
+# Each trial = one single-shot client-selection call testing whether
+# phrasing (not true utility) moves an LLM orchestrator's selection.
+# See experiments/run_selection_trials.py for the trial procedure.
+
+# Phase 3's fixed client-identity pool (must match metadata/schema.py's
+# generate_true_utilities defaults so every session draws the same 24
+# identities).
+num_true_clients: 24
+metadata_seed: 7
+
+# Per-trial pool: how many client identities are shown to the selector,
+# and how many it must pick.
+pool_size: 10
+clients_per_trial: 3
+
+# Core scope: one orchestrator (Llama-3.2-3B-Instruct, loaded by the
+# notebook and passed into run_pilot()), all three prompting strategies,
+# both Core phrasing axes.
+strategies:
+  - llm_description_only
+  - llm_few_shot
+  - llm_cot
+axes:
+  - formality
+  - implied_geography
+
+# 3 strategies x 2 axes x 40 = 240 LLM trials -> within the ~200-300 pilot
+# target. Each trial also runs a numeric-control selector on the identical
+# pool (near-free — no model call) as a negative control for Phase 6.
+trials_per_cell: 40
+control_selector: power_of_choice
+
+# Session-discipline bounded batch (Implementation Plan Section 2).
+batch_size: 60
+max_minutes_per_session: 70
+
+# Output — gitignored (*.csv); push these out as a new results/ Kaggle
+# Dataset version before ending each session, per the push checklist.
+results_dir: results
+trial_results_file: phase4_pilot_trials.csv
+client_results_file: phase4_pilot_clients.csv

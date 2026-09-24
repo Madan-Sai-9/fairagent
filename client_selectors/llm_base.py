@@ -26,6 +26,15 @@ from client_selectors.base import BaseSelector, ClientProfile, SelectionResult
 
 
 def _render_client_line(client: ClientProfile, last_loss) -> str:
+    """Phase 4+: when `metadata_text` is populated (Phase 3's phrasing-variant
+    renderer), it is used VERBATIM and alone — no neutral numeric line is
+    appended alongside it. Appending the raw numbers would hand the LLM an
+    unphrased anchor for every client regardless of variant, which would
+    dilute the very manipulation the bias audit depends on. Falls back to
+    the original neutral rendering when metadata_text is unset (Phase 1/2
+    harness runs, which never populate it)."""
+    if client.metadata_text:
+        return f"- client_{client.client_id}: {client.metadata_text}"
     loss_str = f"{last_loss:.3f}" if last_loss is not None else "not yet measured"
     extra_stats = {k: v for k, v in (client.stats or {}).items() if k != "last_loss"}
     extra_str = f", additional stats: {extra_stats}" if extra_stats else ""
