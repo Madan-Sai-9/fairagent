@@ -4,7 +4,7 @@
 
 ## What this is
 
-Federated Learning (FL) is designed so client-selection decisions can be made from numbers alone (loss, data volume, bandwidth) — precisely so a client's identity can't influence whether it participates. Emerging **agentic FL** systems replace this with an LLM reasoning over natural-language client metadata, explicitly to capture "nuance" numeric criteria miss. This reopens a risk numeric selection is structurally immune to: **selection influenced by how a client's metadata is *worded*, independent of the client's actual utility.**
+Federated Learning (FL) is designed so client-selection decisions can be made from numbers alone (loss, data volume, bandwidth) — precisely so a client's identity can't influence whether it participates. Emerging **agentic FL** systems replace this with an LLM reasoning over natural-language client metadata, explicitly to capture "nuance" numeric criteria miss. This reopens a risk numeric selection is structurally immune to: **selection influenced by how a client's metadata is *worded*, independent of the client's actual utility.* *
 
 FairAgent designs a controlled audit to measure whether this bias exists, compares LLM-based selection against numeric baselines (Oort, Power-of-Choice) under matched-utility conditions, and evaluates a mitigation (metadata templating).
 
